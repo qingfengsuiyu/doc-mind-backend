@@ -1,0 +1,4 @@
+uniapp/
+__pycache__/
+.env
+chroma_db/
