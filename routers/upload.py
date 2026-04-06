@@ -2,8 +2,38 @@ from fastapi import APIRouter,File,UploadFile,HTTPException
 import io
 import PyPDF2
 from database import splitter,vectorstore
+import json
+import os
+from datetime import datetime
+
 
 router = APIRouter()
+
+
+# 写入文档元数据
+def save_doc_meta(filename, chunk_count):
+    meta_path = './docs_meta.json'
+    
+    # 读取现有数据，文件不存在就用空列表
+    if os.path.exists(meta_path):
+        with open(meta_path, 'r', encoding='utf-8') as f:
+            docs = json.load(f)
+    else:
+        docs = []
+    
+    # 追加新文档信息
+    docs.append({
+        'filename': filename,
+        'chunk_count': chunk_count,
+        'upload_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    })
+    
+    # 写回文件
+    with open(meta_path, 'w', encoding='utf-8') as f:
+        json.dump(docs, f, ensure_ascii=False, indent=2)
+        
+
+
 
 @router.post('/upload')
 async def upload(file:UploadFile = File(...)):
@@ -29,11 +59,13 @@ async def upload(file:UploadFile = File(...)):
         raise HTTPException(status_code=400,detail='PDF 内容为空，可能是扫描版图片')
     
     chunks = splitter.split_text(text)
+    
     print(f"提取的文字前200字：{text[:200]}")
     print(f"切块数量：{len(chunks)}")
     # 把 chunks 存入 ChromaDB
     vectorstore.add_texts(
-    texts=chunks,
-    metadatas=[{'source': file.filename}] * len(chunks)
-)
+        texts=chunks,
+        metadatas=[{'source': file.filename}] * len(chunks)
+    )
+    save_doc_meta(file.filename, len(chunks))
     return {'message': '上传成功', 'chunk_count': len(chunks),}

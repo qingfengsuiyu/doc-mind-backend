@@ -10,4 +10,5 @@ class Message(BaseModel):
 class AskRequest(BaseModel):
     question:str
     history: List[Message] = []  # 默认空列表
+    source: str = ''  # 当前选中的文档名，空字符串表示全部
 

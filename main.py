@@ -3,6 +3,7 @@ load_dotenv()  # ← 放在最前面，第一个执行
 from fastapi import FastAPI  # 导入
 from routers.chat import router as chat_router
 from routers.upload import router as upload_router
+from routers.docs import router as docs_router
 from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI() # 创建实例
 
@@ -30,3 +31,4 @@ def hello_name(name):
 # 注册路由
 app.include_router(chat_router)
 app.include_router(upload_router)
+app.include_router(docs_router)

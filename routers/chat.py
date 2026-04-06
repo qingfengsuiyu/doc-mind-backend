@@ -18,7 +18,14 @@ client = OpenAI(
 def ask(body: AskRequest):
     try:
         # 第一步：检索相关chunks
-        docs = vectorstore.similarity_search(body.question, k=9)
+        if body.source:
+            docs = vectorstore.similarity_search(
+                body.question, 
+                k=9,
+                filter={'source': body.source}
+            )
+        else:
+            docs = vectorstore.similarity_search(body.question, k=9)
         
         # 第二步：把chunks拼成上下文
         context = '\n'.join([doc.page_content for doc in docs])
@@ -55,7 +62,15 @@ def ask(body: AskRequest):
 @router.post('/ask/stream')
 def ask_stream(body:AskRequest):
     def generate():
-        docs = vectorstore.similarity_search(body.question, k=9)
+        if body.source:
+            docs = vectorstore.similarity_search(
+                body.question, 
+                k=9,
+                filter={'source': body.source}
+            )
+        else:
+            docs = vectorstore.similarity_search(body.question, k=9)
+        
         context = '\n'.join([doc.page_content for doc in docs])
         messages = [
             {
