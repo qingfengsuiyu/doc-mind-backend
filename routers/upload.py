@@ -29,7 +29,11 @@ async def upload(file:UploadFile = File(...)):
         raise HTTPException(status_code=400,detail='PDF 内容为空，可能是扫描版图片')
     
     chunks = splitter.split_text(text)
-    
+    print(f"提取的文字前200字：{text[:200]}")
+    print(f"切块数量：{len(chunks)}")
     # 把 chunks 存入 ChromaDB
-    vectorstore.add_texts(texts=chunks)
-    return {'message': '上传成功', 'chunk_count': len(chunks)}
+    vectorstore.add_texts(
+    texts=chunks,
+    metadatas=[{'source': file.filename}] * len(chunks)
+)
+    return {'message': '上传成功', 'chunk_count': len(chunks),}

@@ -8,7 +8,7 @@ embeddings = HuggingFaceEmbeddings(
 )
 
 splitter = RecursiveCharacterTextSplitter(
-    chunk_size=500,      # 每块最多500个字符
+    chunk_size=1000,      # 每块最多500个字符
     chunk_overlap=50     # 相邻块之间重叠50个字符
 )
 
