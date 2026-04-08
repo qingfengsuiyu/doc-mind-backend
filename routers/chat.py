@@ -101,7 +101,10 @@ def ask_stream(body:AskRequest):
             text = chunk.choices[0].delta.content
             if text:
                 # SSE 格式：data: 内容\n\n
-                yield f"data: {json.dumps({'text': text}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'text', 'content': text}, ensure_ascii=False)}\n\n"
+        
+        sources = [doc.page_content[:200] for doc in docs]
+        yield f"data: {json.dumps({'type': 'sources', 'content': sources}, ensure_ascii=False)}\n\n"
         
         # 发送结束标志
         yield "data: [DONE]\n\n"
