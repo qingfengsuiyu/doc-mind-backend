@@ -2,9 +2,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+from dotenv import load_dotenv
 
-# 数据库连接地址
-DATABASE_URL = "mysql+pymysql://root:213465@localhost:3306/docmind"
+load_dotenv()  # 加载 .env 文件
+DATABASE_URL = os.getenv("DATABASE_URL") # 数据库连接地址
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False,autoflush=False,bind=engine)

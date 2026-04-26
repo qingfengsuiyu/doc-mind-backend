@@ -16,7 +16,7 @@ client = OpenAI(
 )
 
 @router.post('/ask')
-def ask(body: AskRequest):
+def ask(body: AskRequest, username: str = Depends(verify_token)):
     try:
         # 第一步：检索相关chunks
         if body.source:

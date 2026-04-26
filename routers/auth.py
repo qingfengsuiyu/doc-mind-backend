@@ -14,8 +14,10 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256" # 加密算法
 EXPIRE_HOURS = 24 # Token 有效期 24 小时
 
+
 security = HTTPBearer()
 router = APIRouter()
+load_dotenv()  # 加载 .env 文件
 
 # 创建 bcrypt 加密工具
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -44,7 +46,7 @@ def register(body: AuthRequest, db: Session = Depends(get_db)):
 
 # 登录注册逻辑
 def create_token(username:str):
-    expire = datetime.now() - timedelta(hours=EXPIRE_HOURS)
+    expire = datetime.now() + timedelta(hours=EXPIRE_HOURS)
     payload = {
         "sub": username,      # sub 是 JWT 标准字段，存用户标识
         "exp": expire         # exp 是过期时间
