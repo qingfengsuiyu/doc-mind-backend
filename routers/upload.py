@@ -1,11 +1,11 @@
-from fastapi import APIRouter,File,UploadFile,HTTPException
+from fastapi import APIRouter,File,UploadFile,HTTPException,Depends
 import io
 import PyPDF2
 from database import splitter,vectorstore
 import json
 import os
 from datetime import datetime
-
+from routers.auth import verify_token
 
 router = APIRouter()
 
@@ -36,7 +36,7 @@ def save_doc_meta(filename, chunk_count):
 
 
 @router.post('/upload')
-async def upload(file:UploadFile = File(...)):
+async def upload(file:UploadFile = File(...),username: str = Depends(verify_token)):
     # 文件校检
     if not file.filename.endswith('.pdf'):
         raise HTTPException(status_code=400, detail='只支持 PDF 文件')

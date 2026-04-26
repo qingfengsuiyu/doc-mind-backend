@@ -1,11 +1,12 @@
 # routers/chat.py
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException,Depends
 from models.schemas import AskRequest
 import os
 from openai import OpenAI
 from database import vectorstore
 from fastapi.responses import StreamingResponse
 import json
+from routers.auth import verify_token
 
 router = APIRouter()
 
@@ -15,7 +16,7 @@ client = OpenAI(
 )
 
 @router.post('/ask')
-def ask(body: AskRequest):
+def ask(body: AskRequest, username: str = Depends(verify_token)):
     try:
         # 第一步：检索相关chunks
         if body.source:
@@ -59,8 +60,9 @@ def ask(body: AskRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'AI 服务异常：{str(e)}')
     
+    
 @router.post('/ask/stream')
-def ask_stream(body:AskRequest):
+def ask_stream(body:AskRequest,username: str = Depends(verify_token)):
     def generate():
         if body.source:
             docs = vectorstore.similarity_search(

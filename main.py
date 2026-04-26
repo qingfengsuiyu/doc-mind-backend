@@ -1,34 +1,36 @@
 from dotenv import load_dotenv
-load_dotenv()  # ← 放在最前面，第一个执行
-from fastapi import FastAPI  # 导入
+load_dotenv()
+
+from fastapi import FastAPI
 from routers.chat import router as chat_router
 from routers.upload import router as upload_router
 from routers.docs import router as docs_router
+from routers.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
-app = FastAPI() # 创建实例
+from database_sql import engine
+from models_sql import Base
 
-# 跨域,中间件
+# import 完之后再创建表
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],      # 允许所有来源，开发阶段用
-    allow_methods=["*"],      # 允许所有请求方法
-    allow_headers=["*"],      # 允许所有请求头
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# 这叫装饰器
-@app.get('/hello')  # 配置路由
+@app.get('/hello')
 def hello_world():
-    return {'message':'hi,nice to meet you.'}
-
-# 监听这步 FastAPI 不写在代码里
-# 而是通过 uvicorn 命令启动，后面会讲
+    return {'message': 'hi,nice to meet you.'}
 
 @app.get('/hello/{name}')
 def hello_name(name):
-    return {'message':f'hi,{name}'}
+    return {'message': f'hi,{name}'}
 
-
-# 注册路由
 app.include_router(chat_router)
 app.include_router(upload_router)
 app.include_router(docs_router)
+app.include_router(auth_router)
