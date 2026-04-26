@@ -6,6 +6,7 @@ from typing import List
 class Message(BaseModel):
     role: str
     content: str
+    
 # 定义一个数据结构,描述请求体长什么样
 class AskRequest(BaseModel):
     question:str
