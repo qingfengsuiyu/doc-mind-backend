@@ -10,4 +10,4 @@ chromadb
 PyPDF2
 python-multipart
 dashscope
-httpx[socks g 
+httpx[socks]
