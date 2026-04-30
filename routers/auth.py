@@ -17,7 +17,6 @@ EXPIRE_HOURS = 24 # Token 有效期 24 小时
 
 security = HTTPBearer()
 router = APIRouter()
-load_dotenv()  # 加载 .env 文件
 
 # 创建 bcrypt 加密工具
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
