@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 # 写入文档元数据
-def save_doc_meta(filename, chunk_count):
+def save_doc_meta(filename, chunk_count,username):
     meta_path = './docs_meta.json'
     
     # 读取现有数据，文件不存在就用空列表
@@ -25,7 +25,9 @@ def save_doc_meta(filename, chunk_count):
     docs.append({
         'filename': filename,
         'chunk_count': chunk_count,
-        'upload_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        'upload_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'username':username
+        
     })
     
     # 写回文件
@@ -65,7 +67,7 @@ async def upload(file:UploadFile = File(...),username: str = Depends(verify_toke
     # 把 chunks 存入 ChromaDB
     vectorstore.add_texts(
         texts=chunks,
-        metadatas=[{'source': file.filename}] * len(chunks)
+        metadatas=[{'source': file.filename,'username':username}] * len(chunks)
     )
-    save_doc_meta(file.filename, len(chunks))
+    save_doc_meta(file.filename, len(chunks),username)
     return {'message': '上传成功', 'chunk_count': len(chunks),}

@@ -23,10 +23,10 @@ def ask(body: AskRequest, username: str = Depends(verify_token)):
             docs = vectorstore.similarity_search(
                 body.question, 
                 k=9,
-                filter={'source': body.source}
+                filter={'source': body.source,'username':username}
             )
         else:
-            docs = vectorstore.similarity_search(body.question, k=9)
+            docs = vectorstore.similarity_search(body.question, k=9,filter={'username':username})
         
         # 第二步：把chunks拼成上下文
         context = '\n'.join([doc.page_content for doc in docs])
