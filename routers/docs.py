@@ -34,7 +34,12 @@ def delete_doc(filename: str,username: str = Depends(verify_token)):
     
     # 第二步：从 ChromaDB 里删除对应的向量
     vectorstore._collection.delete(
-        where={'source': filename,'username':username}
+        where={
+        '$and': [
+            {'source': {'$eq': filename}},
+            {'username': {'$eq': username}}
+        ]
+    }
     )
     
     return {'message': f'{filename} 删除成功'}

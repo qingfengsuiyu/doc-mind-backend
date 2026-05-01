@@ -23,7 +23,12 @@ def ask(body: AskRequest, username: str = Depends(verify_token)):
             docs = vectorstore.similarity_search(
                 body.question, 
                 k=9,
-                filter={'source': body.source,'username':username}
+                filter={
+                    '$and': [
+                        {'source': {'$eq': body.source}},
+                        {'username': {'$eq': username}}
+                    ]
+                }
             )
         else:
             docs = vectorstore.similarity_search(body.question, k=9,filter={'username':username})
@@ -68,10 +73,15 @@ def ask_stream(body:AskRequest,username: str = Depends(verify_token)):
             docs = vectorstore.similarity_search(
                 body.question, 
                 k=9,
-                filter={'source': body.source}
+                filter={
+                    '$and': [
+                        {'source': {'$eq': body.source}},
+                        {'username': {'$eq': username}}
+                    ]
+                }
             )
         else:
-            docs = vectorstore.similarity_search(body.question, k=9)
+            docs = vectorstore.similarity_search(body.question, k=9,filter={'username': username})
         
         context = '\n'.join([doc.page_content for doc in docs])
         messages = [
