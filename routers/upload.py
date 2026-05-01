@@ -8,11 +8,10 @@ from datetime import datetime
 from routers.auth import verify_token
 
 router = APIRouter()
-
+meta_path = './docs_meta.json'
 
 # 写入文档元数据
 def save_doc_meta(filename, chunk_count,username):
-    meta_path = './docs_meta.json'
     
     # 读取现有数据，文件不存在就用空列表
     if os.path.exists(meta_path):
@@ -42,6 +41,20 @@ async def upload(file:UploadFile = File(...),username: str = Depends(verify_toke
     # 文件校检
     if not file.filename.endswith('.pdf'):
         raise HTTPException(status_code=400, detail='只支持 PDF 文件')
+    
+    # 检查文件是否上传过:1.获取文件用户名
+    filename = file.filename
+    # 2.读取json文件
+    if os.path.exists(meta_path):
+        with open(meta_path, 'r', encoding='utf-8') as f:
+            docs = json.load(f)
+    else:
+        docs = []
+    # 3.判断json数据中是否存在该记录
+    isExit = any((d['filename'] == filename and d['username'] == username) for d in docs)
+    # 4.如果存在,不上传,在文件中追加一条记录,用户名为当前用户的
+    if isExit:
+        raise HTTPException(status_code=409,detail='File already exists')
     
     content = await file.read() #读取二进制内容
     
