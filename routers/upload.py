@@ -6,9 +6,19 @@ import json
 import os
 from datetime import datetime
 from routers.auth import verify_token
+from openai import OpenAI
 
 router = APIRouter()
 meta_path = './docs_meta.json'
+
+client = OpenAI(
+    api_key=os.getenv("DASHSCOPE_API_KEY"),
+    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+)
+    
+
+
+
 
 # 写入文档元数据
 def save_doc_meta(filename, chunk_count,username):
@@ -58,14 +68,29 @@ async def upload(file:UploadFile = File(...),username: str = Depends(verify_toke
     
     content = await file.read() #读取二进制内容
     
-    # 读取内容后判断大小
+    # 超过10M的文件不上传
     if len(content) > 10 * 1024 * 1024:  # 10MB
         raise HTTPException(status_code=400,detail='文件大小不能超过 10MB')
     
-    # 将二进制包装成对象
+    
+    # 读取文件-正常流程
+    # 1.将二进制包装成对象
     content_obj = io.BytesIO(content)
-    # 用pyPDF2读取
+    # 2.用pyPDF2读取
     pdf_reader = PyPDF2.PdfReader(content_obj)
+    
+    # 获取标题的特殊方法,使用llm读取第一页的前1000个字符,获取标题,并存入到一个特殊的分块中
+    first_page_text = pdf_reader.pages[0].extract_text()
+    title_response = client.chat.completions.create(
+        model='qwen-turbo',
+        messages=[{
+            'role': 'user',
+            'content': f'从下面的论文文本中提取论文标题，只返回标题本身，不要任何解释：\n{first_page_text[:1000]}'
+        }]
+    )
+    title = title_response.choices[0].message.content.strip()
+    
+    # 内容分块
     text = ''
     for page in pdf_reader.pages:
         text += page.extract_text()
@@ -77,7 +102,14 @@ async def upload(file:UploadFile = File(...),username: str = Depends(verify_toke
     
     print(f"提取的文字前200字：{text[:200]}")
     print(f"切块数量：{len(chunks)}")
-    # 把 chunks 存入 ChromaDB
+    
+    # 先插入标题的分块
+    vectorstore.add_texts(
+        texts=[title],
+        metadatas=[{'source': file.filename, 'username': username, 'type': 'title'}]
+    )
+    
+    # 把 内容chunks 存入 ChromaDB
     vectorstore.add_texts(
         texts=chunks,
         metadatas=[{'source': file.filename,'username':username}] * len(chunks)
