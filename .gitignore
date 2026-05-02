@@ -2,3 +2,4 @@ uniapp/
 __pycache__/
 .env
 chroma_db/
+docs_meta.json
